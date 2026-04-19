@@ -90,7 +90,7 @@ I’m still early in my journey, but I care about turning what I learn into repr
 
 - GitHub: https://github.com/majianyu2007
 - Website: https://mjy.js.org
-- Email: *to be added*
+- Email: mjy20070413[at]gmail.com
 
 ---
 
