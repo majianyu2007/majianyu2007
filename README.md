@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="https://capsule-render.vercel.app/api?type=waving&height=220&text=MaJianyu%20%7C%20Developer%20%26%20Explorer&fontAlign=50&fontAlignY=35&color=0:0f172a,50:2563eb,100:22d3ee&fontColor=ffffff&animation=fadeIn&desc=NWAFU%20Freshman%20%7C%20AI%20%2B%20Algorithms%20%2B%20Homelab&descAlign=50&descAlignY=55" width="100%" />
+  <img src="https://capsule-render.vercel.app/api?type=waving&height=220&text=MaJianyu%20%7C%20Developer%20%26amp%3B%20Explorer&fontAlign=50&fontAlignY=35&color=0:0f172a,50:2563eb,100:22d3ee&fontColor=ffffff&animation=fadeIn&desc=NWAFU%20Freshman%20%7C%20AI%20%2B%20Algorithms%20%2B%20Homelab&descAlign=50&descAlignY=55" width="100%" />
   <h1>Hi there, I'm MaJianyu 👋</h1>
   <p>Computer Science student @ NWAFU • Builder • Tinkerer</p>
 </div>
