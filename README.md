@@ -76,14 +76,6 @@ I’m still early in my journey, but I care about turning what I learn into repr
   <img src="https://github-readme-activity-graph.vercel.app/graph?username=majianyu2007&theme=tokyo-night&hide_border=true&area=true" width="95%" />
 </div>
 
-<details>
-  <summary><b>More visual widgets</b> (click to expand)</summary>
-  <br/>
-  <div align="center">
-    <img src="https://github-profile-trophy.vercel.app/?username=majianyu2007&theme=tokyonight&no-frame=true&no-bg=true&margin-w=8" />
-  </div>
-</details>
-
 ---
 
 ## Contact
