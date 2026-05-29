@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&size=30&duration=3500&pause=1000&color=3B82F6&center=true&vCenter=true&width=650&lines=Hi+there%2C+I'm+MaJianyu+👋;Computer+Science+Student+%40+NWAFU;AI+%26+Computer+Vision+Learner;C%2B%2B+%26+Algorithms+Enthusiast;Homelab+%26+SysAdmin+Tinkerer" alt="Typing SVG" />
+  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&size=30&duration=3500&pause=1000&color=3B82F6&center=true&vCenter=true&width=650&lines=Hi+there%2C+I'm+MaJianyu+%F0%9F%91%8B;Computer+Science+Student+%40+NWAFU;AI+%26+Computer+Vision+Learner;C%2B%2B+%26+Algorithms+Enthusiast;Homelab+%26+SysAdmin+Tinkerer" alt="Typing SVG" />
   <p align="center">
     <a href="https://github.com/majianyu2007?tab=followers"><img alt="Followers" src="https://img.shields.io/github/followers/majianyu2007?style=flat-square&logo=github&color=3B82F6" /></a>
     <a href="https://github.com/majianyu2007"><img alt="Stars" src="https://img.shields.io/github/stars/majianyu2007?affiliations=OWNER%2CCOLLABORATOR&style=flat-square&logo=starship&color=10B981" /></a>
