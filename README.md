@@ -1,91 +1,108 @@
 <div align="center">
-  <img src="https://capsule-render.vercel.app/api?type=waving&height=240&text=MaJianyu%20%7C%20Developer&fontSize=42&fontAlign=50&fontAlignY=38&color=0:0f172a,50:2563eb,100:22d3ee&fontColor=ffffff&animation=fadeIn&desc=NWAFU%20Freshman%20%7C%20AI%20%2B%20Algorithms%20%2B%20Homelab&descAlign=50&descAlignY=58" width="100%" />
-  <h1>Hi there, I'm MaJianyu 👋</h1>
-  <p>Computer Science student @ NWAFU • Builder • Tinkerer</p>
-</div>
-
-<p align="center">
-  <a href="https://github.com/majianyu2007?tab=followers"><img alt="Followers" src="https://img.shields.io/github/followers/majianyu2007?style=for-the-badge&logo=github" /></a>
-  <a href="https://github.com/majianyu2007"><img alt="Stars" src="https://img.shields.io/github/stars/majianyu2007?affiliations=OWNER%2CCOLLABORATOR&style=for-the-badge&logo=starship" /></a>
-  <img alt="Profile Views" src="https://komarev.com/ghpvc/?username=majianyu2007&style=for-the-badge&color=2563eb" />
-  <a href="https://mjy.js.org"><img alt="Website" src="https://img.shields.io/badge/Website-mjy.js.org-111827?style=for-the-badge&logo=vercel&logoColor=white" /></a>
-</p>
-
-<p align="center">
-  <a href="#about">About</a> •
-  <a href="#focus-areas">Focus Areas</a> •
-  <a href="#now">Now</a> •
-  <a href="#github-stats">Stats</a> •
-  <a href="#contact">Contact</a>
-</p>
-
----
-
-## About
-
-I'm a first-year undergraduate student at **Northwest A&F University (NWAFU)**.
-
-I enjoy working across two worlds:
-- **Software & algorithms** (C++, problem-solving, engineering basics)
-- **Systems & infrastructure** (homelab, virtualization, routing, hardware tuning)
-
-I’m still early in my journey, but I care about turning what I learn into reproducible projects and practical systems.
-
----
-
-## Focus Areas
-
-### 🧠 AI & Computer Vision
-- Learning object detection pipelines, especially around **YOLO**-style workflows.
-- Exploring multimodal fusion ideas (e.g., **M3FD** task settings and related module designs).
-
-### 💻 Algorithms & Core Programming
-- Main language: **C++**.
-- Regular practice with STL, dynamic programming, and algorithm training tasks.
-
-### ☁️ Homelab, Virtualization & Networking
-- Maintaining an all-in-one home server setup.
-- Hands-on with **Proxmox VE (PVE)**, PCI passthrough, and **iKuai / OpenWrt** routing stacks.
-
-### 🔧 Hardware & System Tuning
-- Interested in performance/power tuning (including Intel N100 mini-PC scenarios).
-- Enjoy extending old hardware usability through system optimization.
-
----
-
-## Now
-
-- 🧪 Working with lab teammates on long-term multimodal object detection experiments.
-- 🖥️ Iterating on AIO server architecture and VM performance.
-- 📚 Keeping a steady rhythm in C++ algorithm practice and English study (CET-4 prep).
-
----
-
-## GitHub Stats
-
-<div align="center">
-  <img height="170" src="https://github-readme-stats.vercel.app/api?username=majianyu2007&show_icons=true&theme=tokyonight&hide_border=true&rank_icon=github" />
-  <img height="170" src="https://github-readme-stats.vercel.app/api/top-langs/?username=majianyu2007&layout=compact&theme=tokyonight&hide_border=true&langs_count=8" />
-</div>
-
-<div align="center">
-  <img height="170" src="https://streak-stats.demolab.com?user=majianyu2007&theme=tokyonight&hide_border=true" />
-</div>
-
-<div align="center">
-  <img src="https://github-readme-activity-graph.vercel.app/graph?username=majianyu2007&theme=tokyo-night&hide_border=true&area=true" width="95%" />
+  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&size=30&duration=3500&pause=1000&color=3B82F6&center=true&vCenter=true&width=650&lines=Hi+there%2C+I'm+MaJianyu+👋;Computer+Science+Student+%40+NWAFU;AI+%26+Computer+Vision+Learner;C%2B%2B+%26+Algorithms+Enthusiast;Homelab+%26+SysAdmin+Tinkerer" alt="Typing SVG" />
+  <p align="center">
+    <a href="https://github.com/majianyu2007?tab=followers"><img alt="Followers" src="https://img.shields.io/github/followers/majianyu2007?style=flat-square&logo=github&color=3B82F6" /></a>
+    <a href="https://github.com/majianyu2007"><img alt="Stars" src="https://img.shields.io/github/stars/majianyu2007?affiliations=OWNER%2CCOLLABORATOR&style=flat-square&logo=starship&color=10B981" /></a>
+    <img alt="Profile Views" src="https://komarev.com/ghpvc/?username=majianyu2007&style=flat-square&color=8B5CF6" />
+    <a href="https://mjy.js.org"><img alt="Website" src="https://img.shields.io/badge/Website-mjy.js.org-EF4444?style=flat-square&logo=vercel&logoColor=white" /></a>
+  </p>
 </div>
 
 ---
 
-## Contact
+<table width="100%" border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <!-- Left Column: About, Focus & Now -->
+    <td valign="top" width="52%" style="padding-right: 15px;">
+      <h2>👤 About Me</h2>
+      <p>I'm a first-year undergraduate student at <b>Northwest A&F University (NWAFU)</b>.</p>
+      <p>I enjoy working across two worlds:</p>
+      <ul>
+        <li><b>Software & Algorithms</b> (C++, problem-solving, engineering basics)</li>
+        <li><b>Systems & Infrastructure</b> (homelab, virtualization, routing, hardware tuning)</li>
+      </ul>
+      <p>I care about turning what I learn into reproducible projects and practical systems.</p>
+      <br/>
+      <h2>🚀 Focus Areas</h2>
+      <h4>🧠 AI & Computer Vision</h4>
+      <ul>
+        <li>Learning object detection pipelines, especially around <b>YOLO</b>-style workflows.</li>
+        <li>Exploring multimodal fusion ideas (e.g., <b>M3FD</b> task settings and related module designs).</li>
+      </ul>
+      <h4>💻 Algorithms & Programming</h4>
+      <ul>
+        <li>Main language: <b>C++</b>.</li>
+        <li>Regular practice with STL, dynamic programming, and algorithm training.</li>
+      </ul>
+    </td>
+    <!-- Divider -->
+    <td width="3%" style="border-left: 1px solid #30363d;"></td>
+    <!-- Right Column: Tech Stack, Now & Specs -->
+    <td valign="top" width="45%" style="padding-left: 15px;">
+      <h2>🛠️ Tech Stack & Skills</h2>
+      <p align="center">
+        <a href="https://skillicons.dev">
+          <img src="https://skillicons.dev/icons?i=cpp,c,py,pytorch,linux,bash,docker,git,vscode,github,windows,ubuntu&perline=4&theme=dark" alt="My Skills" />
+        </a>
+      </p>
+      <br/>
+      <h2>⚡ Hardware Specs & VMs</h2>
+      <ul>
+        <li><b>Server:</b> Intel N100 Mini-PC</li>
+        <li><b>Hypervisor:</b> Proxmox VE (PVE)</li>
+        <li><b>Router VMs:</b> iKuai (Main) + OpenWrt (Bypass)</li>
+        <li><b>Hardware:</b> PCI passthrough, low-power optimization</li>
+      </ul>
+      <br/>
+      <h2>🎯 What I'm Doing Now</h2>
+      <ul>
+        <li>🧪 Multimodal object detection experiments with lab teammates.</li>
+        <li>🖥️ Tuning VM performance and homelab server topology.</li>
+        <li>📚 Practicing C++ algorithms regularly and preparing for CET-4.</li>
+      </ul>
+    </td>
+  </tr>
+</table>
 
-- GitHub: https://github.com/majianyu2007
-- Website: https://mjy.js.org
-- Email: mjy20070413[at]gmail.com
+---
+
+<h2 align="center">📊 GitHub Stats Dashboard</h2>
+
+<div align="center">
+  <table border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td align="center" valign="top" style="padding-right: 10px;">
+        <img height="185" src="https://github-readme-stats-weld-rho-81.vercel.app/api?username=majianyu2007&show_icons=true&theme=tokyonight&hide_border=true&rank_icon=github&cache_seconds=1800" alt="GitHub Stats" />
+      </td>
+      <td align="center" valign="top" style="padding-left: 10px;">
+        <img height="185" src="https://github-readme-stats-weld-rho-81.vercel.app/api/top-langs/?username=majianyu2007&layout=compact&theme=tokyonight&hide_border=true&langs_count=8&cache_seconds=1800" alt="Top Languages" />
+      </td>
+    </tr>
+  </table>
+  <br />
+  <img height="185" src="https://streak-stats.demolab.com?user=majianyu2007&theme=tokyonight&hide_border=true&cache_seconds=1800" alt="GitHub Streak" />
+  <br /><br />
+  <img src="https://github-readme-activity-graph.vercel.app/graph?username=majianyu2007&theme=tokyo-night&hide_border=true&area=true&cache_seconds=1800" width="95%" alt="Activity Graph" />
+</div>
+
 
 ---
 
 <div align="center">
+  <h3>📬 Let's Connect!</h3>
+  <p>
+    <a href="mailto:mjy20070413@gmail.com">
+      <img src="https://img.shields.io/badge/Email-mjy20070413%40gmail.com-10B981?style=flat-square&logo=gmail&logoColor=white" alt="Email" />
+    </a>
+    &nbsp;&nbsp;
+    <a href="https://mjy.js.org" target="_blank">
+      <img src="https://img.shields.io/badge/Website-mjy.js.org-3B82F6?style=flat-square&logo=vercel&logoColor=white" alt="Website" />
+    </a>
+    &nbsp;&nbsp;
+    <a href="https://github.com/majianyu2007">
+      <img src="https://img.shields.io/badge/GitHub-majianyu2007-181717?style=flat-square&logo=github&logoColor=white" alt="GitHub" />
+    </a>
+  </p>
+  <br />
   <i>"Talk is cheap. Show me the code."</i>
 </div>
