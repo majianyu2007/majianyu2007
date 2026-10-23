@@ -1,0 +1,52 @@
+name: Update profile statistics
+
+on:
+  schedule:
+    - cron: '23 6 * * *'
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/**'
+      - 'assets/profile/**'
+      - 'assets/vendor/**'
+      - 'tests/**'
+      - '.github/workflows/update-stats.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: profile-statistics
+  cancel-in-progress: false
+
+jobs:
+  update:
+    if: github.repository == 'majianyu2007/majianyu2007' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: main
+      - name: Check committed profile artwork
+        run: python3 scripts/build_visuals.py --check
+      - name: Check failure protection and aggregation
+        run: python3 -m unittest discover -s tests -v
+      - name: Generate and validate static assets
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python3 scripts/update_stats.py
+      - name: Commit generated assets only
+        run: |
+          git add -- assets/stats/overview-light.svg assets/stats/overview-dark.svg assets/stats/activity-light.svg assets/stats/activity-dark.svg assets/stats/github-stats.json
+          if git diff --cached --quiet; then
+            echo "Statistics are unchanged."
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'chore: refresh profile statistics'
+          git push origin HEAD:main
