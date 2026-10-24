@@ -1,30 +1,50 @@
 #!/usr/bin/env python3
-"""Render the profile's activity cards from public GitHub data.
+"""Render the profile's GitHub statistics cards from public GitHub data.
 
-Runs in GitHub Actions with the built-in GITHUB_TOKEN (read-only use). Everything is
-fetched, validated and rendered in memory first; files are only replaced when all of
-that succeeded, so a failed run leaves the previous good images untouched.
+Runs in GitHub Actions with the built-in GITHUB_TOKEN; no personal access token.
+Everything is fetched, validated and rendered in memory first, and files are only
+replaced when all of that succeeded, so a failed run leaves the previous images intact.
 """
 
 import argparse
 from collections import Counter
 from datetime import date, datetime, timedelta, timezone
 import json
+import math
 import os
 from pathlib import Path
 from urllib.request import Request, urlopen
 
-from profile_svg import MONO, ROOT, SANS, THEMES, card_frame, document, esc, write_assets
+from profile_svg import (
+    MONO, ROOT, SANS, THEMES, badge, card_frame, document, esc, glyph, write_assets,
+)
 
 USER = "majianyu2007"
-API = "https://api.github.com"
-CARD_W, CARD_H = 416, 300
+GRAPHQL = "https://api.github.com/graphql"
+CARD_W, CARD_H = 416, 200
+# Build-system and docs-format entries say little about what someone writes.
+IGNORED_LANGUAGES = {"CMake", "Makefile", "Dockerfile", "Batchfile", "MDX", "Procfile"}
 
-CALENDAR_QUERY = """
-query($login: String!) {
+QUERY = """
+query($login: String!, $cursor: String) {
   user(login: $login) {
     followers { totalCount }
+    pullRequests { totalCount }
+    issues { totalCount }
+    repositories(first: 100, after: $cursor, ownerAffiliations: OWNER, privacy: PUBLIC,
+                 isFork: false, orderBy: {field: NAME, direction: ASC}) {
+      totalCount
+      pageInfo { hasNextPage endCursor }
+      nodes {
+        name isFork isPrivate stargazerCount
+        languages(first: 20, orderBy: {field: SIZE, direction: DESC}) {
+          edges { size node { name color } }
+        }
+      }
+    }
     contributionsCollection {
+      totalCommitContributions
+      totalRepositoriesWithContributedCommits
       contributionCalendar {
         totalContributions
         weeks { contributionDays { date contributionCount } }
@@ -34,153 +54,164 @@ query($login: String!) {
 }
 """
 
-# GitHub linguist colours; a few get a lighter stand-in on dark backgrounds.
-LANGUAGE_COLOURS = {
-    "C": "#555555", "C++": "#f34b7d", "C#": "#178600", "CSS": "#663399", "Dart": "#00B4AB",
-    "Go": "#00ADD8", "HTML": "#e34c26", "Java": "#b07219", "JavaScript": "#f1e05a",
-    "Kotlin": "#A97BFF", "Lua": "#000080", "Python": "#3572A5", "Rust": "#dea584",
-    "Shell": "#89e051", "Swift": "#F05138", "TeX": "#3D6117", "TypeScript": "#3178c6",
-    "Vue": "#41b883",
-}
-DARK_OVERRIDES = {"C": "#8b949e", "Lua": "#6f7fe0", "TeX": "#6a9a3a", "Python": "#4f8fd0"}
-
-
-def language_colour(language, theme):
-    if language == "Other":
-        return THEMES[theme]["faint"]
-    if theme == "dark" and language in DARK_OVERRIDES:
-        return DARK_OVERRIDES[language]
-    return LANGUAGE_COLOURS.get(language, "#8c959f")
-
 
 # --------------------------------------------------------------------------- fetching
-def _request(url, payload=None):
+def graphql(variables):
     token = os.environ.get("GITHUB_TOKEN")
-    headers = {
-        "Accept": "application/vnd.github+json",
-        "X-GitHub-Api-Version": "2022-11-28",
-        "User-Agent": f"{USER}-profile-stats",
-    }
-    if token:
-        headers["Authorization"] = f"Bearer {token}"
-    data = None
-    if payload is not None:
-        data = json.dumps(payload).encode("utf-8")
-        headers["Content-Type"] = "application/json"
-    with urlopen(Request(url, data=data, headers=headers), timeout=30) as response:
-        return json.load(response)
-
-
-def fetch_repositories():
-    """Every public repository owned by the user, across all pages."""
-    repositories, page = [], 1
-    while True:
-        batch = _request(f"{API}/users/{USER}/repos?type=owner&sort=full_name&per_page=100&page={page}")
-        if not isinstance(batch, list):
-            raise ValueError("expected a repository list")
-        repositories.extend(batch)
-        if len(batch) < 100:
-            return repositories
-        page += 1
-
-
-def fetch_calendar():
-    if not os.environ.get("GITHUB_TOKEN"):
-        raise ValueError("GITHUB_TOKEN is required for the GraphQL contribution calendar")
-    result = _request(f"{API}/graphql", {"query": CALENDAR_QUERY, "variables": {"login": USER}})
+    if not token:
+        raise ValueError("GITHUB_TOKEN is required")
+    request = Request(
+        GRAPHQL,
+        data=json.dumps({"query": QUERY, "variables": variables}).encode("utf-8"),
+        headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json",
+                 "User-Agent": f"{USER}-profile-stats"},
+    )
+    with urlopen(request, timeout=30) as response:
+        result = json.load(response)
     if not isinstance(result, dict) or result.get("errors") or not isinstance(result.get("data"), dict):
         raise ValueError("GraphQL query failed")
-    return result["data"]["user"]
+    user = result["data"].get("user")
+    if not isinstance(user, dict):
+        raise ValueError("user missing from response")
+    return user
+
+
+def fetch():
+    """First page carries the profile fields; later pages only add repositories."""
+    user = graphql({"login": USER, "cursor": None})
+    repositories = list(user["repositories"]["nodes"])
+    page = user["repositories"]["pageInfo"]
+    while page["hasNextPage"]:
+        more = graphql({"login": USER, "cursor": page["endCursor"]})["repositories"]
+        repositories.extend(more["nodes"])
+        page = more["pageInfo"]
+    user["repositories"]["nodes"] = repositories
+    return user
 
 
 # --------------------------------------------------------------------------- summarising
-def summarize_repositories(repositories):
-    originals, seen = [], set()
+def _count(value, what):
+    if type(value) is not int or value < 0:
+        raise ValueError(f"invalid {what}")
+    return value
+
+
+def summarize_languages(repositories):
+    """Share of each language with every repository weighted equally.
+
+    Weighting by raw bytes would let one repository with vendored C code outweigh
+    everything else; equal weights describe what the projects are actually written in.
+    """
+    weights, colours, counted = Counter(), {}, 0
     for repo in repositories:
-        if not isinstance(repo, dict):
-            raise ValueError("invalid repository record")
-        identifier, stars, language = repo.get("id"), repo.get("stargazers_count"), repo.get("language")
+        sizes = {}
+        for edge in repo["languages"]["edges"]:
+            name, size = edge["node"]["name"], _count(edge["size"], "language size")
+            if name in IGNORED_LANGUAGES or not size:
+                continue
+            sizes[name] = sizes.get(name, 0) + size
+            colours[name] = edge["node"].get("color") or "#8c959f"
+        total = sum(sizes.values())
+        if total:
+            counted += 1
+            for name, size in sizes.items():
+                weights[name] += size / total
+    ranked = sorted(weights.items(), key=lambda kv: (-kv[1], kv[0]))
+    return counted, [
+        {"name": name, "color": colours[name], "share": round(100 * weight / counted, 2)}
+        for name, weight in ranked
+    ] if counted else []
+
+
+def summarize_repositories(user):
+    block = user.get("repositories") or {}
+    nodes = block.get("nodes")
+    if not isinstance(nodes, list) or _count(block.get("totalCount"), "repository count") != len(nodes):
+        raise ValueError("incomplete repository list")
+    names = set()
+    for repo in nodes:
         if (
-            type(identifier) is not int or identifier in seen
-            or not isinstance(repo.get("owner"), dict)
-            or str(repo["owner"].get("login", "")).lower() != USER.lower()
-            or repo.get("private") is not False
-            or type(repo.get("fork")) is not bool
-            or type(stars) is not int or stars < 0
-            or (language is not None and (not isinstance(language, str) or not language))
+            not isinstance(repo, dict) or repo.get("isFork") is not False or repo.get("isPrivate") is not False
+            or not isinstance(repo.get("name"), str) or repo["name"] in names
+            or not isinstance((repo.get("languages") or {}).get("edges"), list)
         ):
-            raise ValueError("incomplete, duplicate or non-public repository data")
-        seen.add(identifier)
-        if not repo["fork"]:
-            originals.append(repo)
-    languages = Counter(repo["language"] for repo in originals if repo["language"])
+            raise ValueError("unexpected repository record")
+        names.add(repo["name"])
+        _count(repo.get("stargazerCount"), "star count")
+    counted, languages = summarize_languages(nodes)
     return {
-        "repositories": len(originals),
-        "stars": sum(repo["stargazers_count"] for repo in originals),
-        "languages": [list(item) for item in sorted(languages.items(), key=lambda kv: (-kv[1], kv[0]))],
+        "repositories": len(nodes),
+        "stars": sum(repo["stargazerCount"] for repo in nodes),
+        "language_repositories": counted,
+        "languages": languages,
     }
 
 
-def summarize_calendar(user, today):
-    if not isinstance(user, dict):
-        raise ValueError("user missing from GraphQL response")
-    followers = user.get("followers", {}).get("totalCount")
-    calendar = user.get("contributionsCollection", {}).get("contributionCalendar", {})
-    total, weeks = calendar.get("totalContributions"), calendar.get("weeks")
-    if type(followers) is not int or followers < 0 or type(total) is not int or total < 0:
-        raise ValueError("invalid follower or contribution totals")
+def _runs(days):
+    """Yield (start, end, length) for every run of active days."""
+    start = previous = None
+    for day, count in days:
+        if count and start is not None and day == previous + timedelta(days=1):
+            previous = day
+            continue
+        if start is not None:
+            yield start, previous, (previous - start).days + 1
+            start = None
+        if count:
+            start = previous = day
+    if start is not None:
+        yield start, previous, (previous - start).days + 1
+
+
+def summarize_calendar(collection):
+    calendar = collection.get("contributionCalendar") or {}
+    total, weeks = _count(calendar.get("totalContributions"), "total"), calendar.get("weeks")
     if not isinstance(weeks, list) or not 50 <= len(weeks) <= 54:
-        raise ValueError("unexpected contribution calendar shape")
+        raise ValueError("unexpected calendar shape")
     days, weekly = [], []
     for week in weeks:
         entries = week.get("contributionDays") if isinstance(week, dict) else None
         if not isinstance(entries, list) or not 1 <= len(entries) <= 7:
             raise ValueError("invalid calendar week")
-        week_total = 0
-        for entry in entries:
-            count = entry.get("contributionCount") if isinstance(entry, dict) else None
-            if type(count) is not int or count < 0:
-                raise ValueError("invalid contribution count")
-            days.append((date.fromisoformat(entry["date"]), count))
-            week_total += count
-        weekly.append({"start": entries[0]["date"], "count": week_total})
-    if [d for d, _ in days] != sorted({d for d, _ in days}) or sum(c for _, c in days) != total:
-        raise ValueError("calendar days are unordered, duplicated or inconsistent")
-    if days[-1][0] != today or any(
-        right[0] - left[0] != timedelta(days=1) for left, right in zip(days, days[1:])
-    ):
-        raise ValueError("calendar is stale or has missing days")
+        counts = [_count(entry.get("contributionCount"), "daily count") for entry in entries]
+        days.extend((date.fromisoformat(entry["date"]), count) for entry, count in zip(entries, counts))
+        weekly.append({"start": entries[0]["date"], "count": sum(counts)})
+    dates = [day for day, _ in days]
+    if any(b - a != timedelta(days=1) for a, b in zip(dates, dates[1:])) or sum(c for _, c in days) != total:
+        raise ValueError("calendar days are not contiguous or do not add up")
 
-    longest = run = 0
-    for _, count in days:
-        run = run + 1 if count else 0
-        longest = max(longest, run)
-    counts = [c for _, c in days]
-    if counts and counts[-1] == 0:
-        counts.pop()  # today may simply not have started yet
-    current = 0
-    for count in reversed(counts):
-        if not count:
-            break
-        current += 1
+    runs = list(_runs(days))
+    longest = max(runs, key=lambda run: (run[2], run[1]), default=None)
+    # The current streak may end today or yesterday: today simply might not have started yet.
+    current = runs[-1] if runs and runs[-1][1] >= dates[-1] - timedelta(days=1) else None
+
+    def span(run):
+        return {"length": run[2], "start": run[0].isoformat(), "end": run[1].isoformat()} if run else \
+            {"length": 0, "start": None, "end": None}
+
     return {
-        "followers": followers,
-        "contributions": {
-            "total": total,
-            "active_days": sum(1 for _, c in days if c),
-            "current_streak": current,
-            "longest_streak": longest,
-            "first_day": days[0][0].isoformat(),
-            "last_day": days[-1][0].isoformat(),
-            "weeks": weekly,
-        },
+        "total": total,
+        "commits": _count(collection.get("totalCommitContributions"), "commits"),
+        "contributed_to": _count(collection.get("totalRepositoriesWithContributedCommits"), "repositories"),
+        "active_days": sum(1 for _, count in days if count),
+        "first_day": dates[0].isoformat(),
+        "last_day": dates[-1].isoformat(),
+        "current_streak": span(current),
+        "longest_streak": span(longest),
+        "weeks": weekly,
     }
 
 
-def summarize(repositories, calendar_user, updated):
-    stats = {"user": USER, "updated": updated}
-    stats.update(summarize_repositories(repositories))
-    stats.update(summarize_calendar(calendar_user, date.fromisoformat(updated)))
+def summarize(user, updated):
+    stats = {
+        "user": USER,
+        "updated": updated,
+        "followers": _count((user.get("followers") or {}).get("totalCount"), "followers"),
+        "pull_requests": _count((user.get("pullRequests") or {}).get("totalCount"), "pull requests"),
+        "issues": _count((user.get("issues") or {}).get("totalCount"), "issues"),
+    }
+    stats.update(summarize_repositories(user))
+    stats["contributions"] = summarize_calendar(user.get("contributionsCollection") or {})
     return stats
 
 
@@ -189,75 +220,156 @@ def fmt(number):
     return f"{number:,}"
 
 
-def header(title, right, t):
-    return (
-        f'<text x="24" y="40" font-family="{SANS}" font-size="16" font-weight="600" fill="{t["text"]}">{esc(title)}</text>'
-        f'<text x="{CARD_W - 24}" y="40" text-anchor="end" font-family="{MONO}" font-size="10.5" fill="{t["faint"]}">{esc(right)}</text>'
-    )
+def short_date(iso, with_year=False):
+    day = date.fromisoformat(iso)
+    return f"{day:%b} {day.day}" + (f", {day.year}" if with_year else "")
 
 
-def render_overview(stats, theme):
+def readable(colour, theme):
+    """Lift near-black language colours on the dark theme."""
+    if theme != "dark":
+        return colour
+    r, g, b = (int(colour[i:i + 2], 16) for i in (1, 3, 5))
+    if 0.2126 * r + 0.7152 * g + 0.0722 * b > 90:
+        return colour
+    return "#{:02x}{:02x}{:02x}".format(*(round(c + (255 - c) * 0.45) for c in (r, g, b)))
+
+
+STYLE = (
+    ".draw{stroke-dasharray:1;animation:draw 1.8s cubic-bezier(.4,0,.2,1) both}"
+    ".grow{animation:grow .9s cubic-bezier(.2,.7,.2,1) both;transform-box:fill-box;transform-origin:left}"
+    ".fade{animation:fade 1.4s .5s ease-out both}"
+    ".pulse{animation:pulse 2.2s ease-out 2s infinite;transform-box:fill-box;transform-origin:center}"
+    "@keyframes draw{from{stroke-dashoffset:1}}@keyframes grow{from{transform:scaleX(0)}}"
+    "@keyframes fade{from{opacity:.25}}@keyframes pulse{from{opacity:.7}to{opacity:0;transform:scale(3)}}"
+    "@media (prefers-reduced-motion:reduce){.draw,.grow,.fade,.pulse{animation:none}.pulse{opacity:0}}"
+)
+
+
+def title(text, t, right=""):
+    out = f'<text x="24" y="38" font-family="{SANS}" font-size="15" font-weight="600" fill="{t["text"]}">{esc(text)}</text>'
+    if right:
+        out += (f'<text x="{CARD_W - 24}" y="38" text-anchor="end" font-family="{MONO}" font-size="10" '
+                f'fill="{t["faint"]}">{esc(right)}</text>')
+    return out
+
+
+def render_stats(stats, theme):
     t = THEMES[theme]
     c = stats["contributions"]
-    metrics = [
-        (fmt(stats["followers"]), "", "followers", t["green"]),
-        (fmt(c["current_streak"]), "d", "current streak", t["amber"]),
-        (fmt(c["longest_streak"]), "d", "longest streak", t["violet"]),
-        (fmt(c["active_days"]), "", "active days", t["blue"]),
-        (fmt(stats["repositories"]), "", "public repos", t["green"]),
-        (fmt(stats["stars"]), "", "stars earned", t["amber"]),
+    rows = [
+        ("star", "Stars earned", stats["stars"], t["amber"]),
+        ("commit", "Commits (last year)", c["commits"], t["green"]),
+        ("pull", "Pull requests", stats["pull_requests"], t["violet"]),
+        ("issue", "Issues", stats["issues"], t["blue"]),
+        ("repo", "Contributed to (last year)", c["contributed_to"], t["muted"]),
     ]
-    parts = [card_frame(CARD_W, CARD_H, t, f"ov-{theme}"),
-             header("GitHub at a glance", f"updated {stats['updated']}", t),
-             f'<style>.seg{{animation:grow .9s cubic-bezier(.2,.7,.2,1) both;transform-box:fill-box;transform-origin:left}}'
-             f'@keyframes grow{{from{{transform:scaleX(0)}}}}'
-             f'@media (prefers-reduced-motion:reduce){{.seg{{animation:none}}}}</style>']
-    for i, (value, unit, label, colour) in enumerate(metrics):
-        x, y = 24 + (i % 3) * 128, 92 + (i // 3) * 62
-        unit_svg = (f'<tspan font-size="14" font-weight="500" fill="{t["muted"]}" dx="2">{unit}</tspan>' if unit else "")
+    parts = [card_frame(CARD_W, CARD_H, t, f"st-{theme}"), title("MaJianyu’s GitHub Stats", t)]
+    for i, (icon, label, value, colour) in enumerate(rows):
+        y = 70 + i * 25
         parts.append(
-            '<g>'
-            f'<rect x="{x}" y="{y - 30}" width="14" height="3" rx="1.5" fill="{colour}"/>'
-            f'<text x="{x}" y="{y}" font-family="{SANS}" font-size="25" font-weight="700" fill="{t["text"]}">{value}{unit_svg}</text>'
-            f'<text x="{x}" y="{y + 18}" font-family="{SANS}" font-size="11.5" fill="{t["muted"]}">{esc(label)}</text></g>'
+            glyph(icon, 24, y - 12, 15, colour, width=2)
+            + f'<text x="48" y="{y}" font-family="{SANS}" font-size="12.5" fill="{t["muted"]}">{esc(label)}:</text>'
+            + f'<text x="238" y="{y}" text-anchor="end" font-family="{SANS}" font-size="13" font-weight="600" fill="{t["text"]}">{fmt(value)}</text>'
         )
-    parts.append(f'<path d="M24 196H{CARD_W - 24}" stroke="{t["grid"]}"/>')
-    parts.append(f'<text x="24" y="220" font-family="{MONO}" font-size="10.5" letter-spacing="1.2" fill="{t["faint"]}">'
-                 f'PRIMARY LANGUAGE · {stats["repositories"]} REPOS</text>')
+    days = (date.fromisoformat(c["last_day"]) - date.fromisoformat(c["first_day"])).days + 1
+    ratio = c["active_days"] / days if days else 0
+    cx, cy, r = 330, 108, 46
+    parts.append(
+        f'<circle cx="{cx}" cy="{cy}" r="{r}" fill="none" stroke="{t["grid"]}" stroke-width="7"/>'
+        f'<circle class="draw" cx="{cx}" cy="{cy}" r="{r}" fill="none" stroke="{t["green"]}" stroke-width="7" '
+        f'stroke-linecap="round" pathLength="1" stroke-dasharray="{ratio:.3f} 1" transform="rotate(-90 {cx} {cy})" '
+        f'style="stroke-dasharray:{ratio:.3f} 1"/>'
+        f'<text x="{cx}" y="{cy + 2}" text-anchor="middle" font-family="{SANS}" font-size="22" font-weight="700" fill="{t["text"]}">{fmt(c["active_days"])}</text>'
+        f'<text x="{cx}" y="{cy + 19}" text-anchor="middle" font-family="{SANS}" font-size="10" fill="{t["muted"]}">active days</text>'
+        f'<text x="{cx}" y="{cy + r + 24}" text-anchor="middle" font-family="{MONO}" font-size="10" fill="{t["faint"]}">{round(ratio * 100)}% of the last year</text>'
+    )
+    desc = (f"{stats['stars']} stars earned, {c['commits']} commits in the last year, {stats['pull_requests']} pull requests, "
+            f"{stats['issues']} issues, contributed to {c['contributed_to']} repositories in the last year; "
+            f"active on {c['active_days']} of the last {days} days.")
+    return document(CARD_W, CARD_H, "MaJianyu's GitHub Stats", desc, "".join(parts), STYLE.replace(
+        "stroke-dasharray:1;", ""))
 
-    languages = [tuple(item) for item in stats["languages"]]
-    shown = languages[:5]
-    rest = sum(count for _, count in languages[5:])
-    if rest:
-        shown.append(("Other", rest))
-    total = sum(count for _, count in shown) or 1
+
+def render_languages(stats, theme):
+    t = THEMES[theme]
+    languages = stats["languages"]
+    shown = [dict(item) for item in languages[:9]]
+    rest = round(100 - sum(item["share"] for item in shown), 2)
+    if len(languages) > 9 and rest > 0:
+        shown.append({"name": "Other", "color": t["faint"], "share": rest})
+    parts = [card_frame(CARD_W, CARD_H, t, f"lg-{theme}"),
+             title("Most Used Languages", t, f"{stats['language_repositories']} repos, equal weight")]
     bar_w, x = CARD_W - 48, 24.0
-    parts.append(f'<clipPath id="bar"><rect x="24" y="230" width="{bar_w}" height="10" rx="5"/></clipPath>'
-                 f'<rect x="24" y="230" width="{bar_w}" height="10" rx="5" fill="{t["grid"]}"/><g clip-path="url(#bar)">')
-    for i, (language, count) in enumerate(shown):
-        width = bar_w * count / total
-        parts.append(f'<rect class="seg" style="animation-delay:{0.25 + i * 0.08:.2f}s" x="{x:.1f}" y="230" '
-                     f'width="{max(width - 2, 1):.1f}" height="10" fill="{language_colour(language, theme)}"/>')
+    parts.append(f'<clipPath id="bar"><rect x="24" y="56" width="{bar_w}" height="10" rx="5"/></clipPath>'
+                 f'<rect x="24" y="56" width="{bar_w}" height="10" rx="5" fill="{t["grid"]}"/><g clip-path="url(#bar)">')
+    for i, item in enumerate(shown):
+        width = bar_w * item["share"] / 100
+        parts.append(f'<rect class="grow" style="animation-delay:{.15 + i * .07:.2f}s" x="{x:.1f}" y="56" '
+                     f'width="{max(width - 1.5, .8):.1f}" height="10" fill="{readable(item["color"], theme)}"/>')
         x += width
     parts.append("</g>")
-    for i, (language, count) in enumerate(shown):
-        lx, ly = 24 + (i % 3) * 128, 266 + (i // 3) * 20
+    for i, item in enumerate(shown):
+        col, row = i % 2, i // 2
+        lx, ly = 24 + col * 196, 96 + row * 21
         parts.append(
-            f'<circle cx="{lx + 4}" cy="{ly - 4}" r="4" fill="{language_colour(language, theme)}"/>'
-            f'<text x="{lx + 14}" y="{ly}" font-family="{SANS}" font-size="12" fill="{t["text"]}">{esc(language)}'
-            f'<tspan font-family="{MONO}" font-size="11" fill="{t["faint"]}" dx="6">{count}</tspan></text>'
+            f'<circle cx="{lx + 5}" cy="{ly - 4}" r="4.5" fill="{readable(item["color"], theme)}"/>'
+            f'<text x="{lx + 18}" y="{ly}" font-family="{SANS}" font-size="12" fill="{t["text"]}">{esc(item["name"])}</text>'
+            f'<text x="{lx + 172}" y="{ly}" text-anchor="end" font-family="{MONO}" font-size="11" fill="{t["muted"]}">{item["share"]:.1f}%</text>'
         )
     if not shown:
-        parts.append(f'<text x="24" y="266" font-family="{SANS}" font-size="12" fill="{t["muted"]}">No primary languages reported.</text>')
-    desc = (f"{stats['followers']} followers, {c['active_days']} active days in the last year, current streak "
-            f"{c['current_streak']} days, longest streak {c['longest_streak']} days. {stats['repositories']} public "
-            f"non-fork repositories with {stats['stars']} stars. Primary languages by repository count: "
-            + ", ".join(f"{lang} {n}" for lang, n in shown) + f". Updated {stats['updated']} UTC.")
-    return document(CARD_W, CARD_H, "GitHub at a glance", desc, "".join(parts))
+        parts.append(f'<text x="24" y="98" font-family="{SANS}" font-size="12.5" fill="{t["muted"]}">No languages reported.</text>')
+    desc = ("Most used languages across public non-fork repositories, each repository weighted equally: "
+            + ", ".join(f"{item['name']} {item['share']:.1f}%" for item in shown) + ".")
+    return document(CARD_W, CARD_H, "Most Used Languages", desc, "".join(parts), STYLE)
+
+
+def render_streak(stats, theme):
+    t = THEMES[theme]
+    c = stats["contributions"]
+    current, longest = c["current_streak"], c["longest_streak"]
+
+    def span(run):
+        if not run["length"]:
+            return "No active streak"
+        if run["start"] == run["end"]:
+            return short_date(run["start"])
+        return f'{short_date(run["start"])} – {short_date(run["end"])}'
+
+    third = CARD_W / 3
+    cols = [third / 2, CARD_W / 2, CARD_W - third / 2]
+    parts = [card_frame(CARD_W, CARD_H, t, f"sk-{theme}")]
+    parts.append(f'<path d="M{third:.1f} 46V154M{2 * third:.1f} 46V154" stroke="{t["grid"]}"/>')
+    for x, value, label, sub in [
+        (cols[0], c["total"], "Total contributions", f'{short_date(c["first_day"], True)} – now'),
+        (cols[2], longest["length"], "Longest streak", span(longest)),
+    ]:
+        parts.append(
+            f'<text x="{x:.1f}" y="104" text-anchor="middle" font-family="{SANS}" font-size="26" font-weight="700" fill="{t["text"]}">{fmt(value)}</text>'
+            f'<text x="{x:.1f}" y="130" text-anchor="middle" font-family="{SANS}" font-size="12" fill="{t["text"]}">{label}</text>'
+            f'<text x="{x:.1f}" y="150" text-anchor="middle" font-family="{MONO}" font-size="9.5" fill="{t["faint"]}">{esc(sub)}</text>'
+        )
+    cx, cy, r = cols[1], 92, 34
+    accent = t["amber"]
+    parts.append(
+        f'<circle cx="{cx:.1f}" cy="{cy}" r="{r}" fill="none" stroke="{t["grid"]}" stroke-width="5"/>'
+        f'<circle class="draw" cx="{cx:.1f}" cy="{cy}" r="{r}" fill="none" stroke="{accent}" stroke-width="5" '
+        f'stroke-linecap="round" pathLength="1" transform="rotate(-90 {cx:.1f} {cy})"/>'
+        f'<circle cx="{cx:.1f}" cy="{cy - r}" r="12" fill="{t["bg_top"]}"/>'
+        + glyph("flame", cx - 9, cy - r - 10, 18, accent, width=1.8)
+        + f'<text x="{cx:.1f}" y="{cy + 10}" text-anchor="middle" font-family="{SANS}" font-size="28" font-weight="700" fill="{t["text"]}">{fmt(current["length"])}</text>'
+        f'<text x="{cx:.1f}" y="150" text-anchor="middle" font-family="{SANS}" font-size="12.5" font-weight="600" fill="{accent}">Current streak</text>'
+        f'<text x="{cx:.1f}" y="170" text-anchor="middle" font-family="{MONO}" font-size="9.5" fill="{t["faint"]}">{esc(span(current))}</text>'
+    )
+    parts.append(f'<text x="{CARD_W / 2}" y="188" text-anchor="middle" font-family="{MONO}" font-size="9" '
+                 f'fill="{t["faint"]}" opacity=".8">within the last 12 months · updated {stats["updated"]}</text>')
+    desc = (f"{c['total']} contributions since {c['first_day']}. Current streak {current['length']} days "
+            f"({span(current)}); longest streak in this period {longest['length']} days ({span(longest)}).")
+    return document(CARD_W, CARD_H, "Contribution streak", desc, "".join(parts), STYLE)
 
 
 def monotone_path(points):
-    """Fritsch–Carlson monotone cubic: smooth, and never dips below zero."""
+    """Fritsch–Carlson monotone cubic: smooth, without dipping below the baseline."""
     n = len(points)
     if n < 2:
         return f"M{points[0][0]:.1f} {points[0][1]:.1f}"
@@ -277,97 +389,90 @@ def monotone_path(points):
 
 def render_activity(stats, theme):
     t = THEMES[theme]
-    c = stats["contributions"]
-    weeks = c["weeks"]
+    weeks = stats["contributions"]["weeks"]
     counts = [week["count"] for week in weeks]
-    peak = max(counts) if counts else 0
+    peak = max(counts, default=0)
     top = max(peak, 1)
-    left, right, y_top, y_base = 24, CARD_W - 24, 112, 232
+    left, right, y_top, y_base = 24, CARD_W - 24, 62, 150
     step = (right - left) / max(len(counts) - 1, 1)
     points = [(left + i * step, y_base - (y_base - y_top) * count / top) for i, count in enumerate(counts)]
     line = monotone_path(points)
-    area = f"{line}L{right:.1f} {y_base}L{left} {y_base}Z"
     accent = t["green"]
     parts = [
-        card_frame(CARD_W, CARD_H, t, f"act-{theme}"),
-        header("Contributions", "weekly · last 12 months", t),
-        '<style>.ln{stroke-dasharray:1;animation:draw 2.4s cubic-bezier(.4,0,.2,1) both}'
-        '.ar{animation:fade 1.6s .6s ease-out both}.pulse{animation:pulse 2.2s ease-out 2.4s infinite;transform-box:fill-box;transform-origin:center}'
-        '@keyframes draw{from{stroke-dashoffset:1}to{stroke-dashoffset:0}}@keyframes fade{from{opacity:.25}}'
-        '@keyframes pulse{0%{opacity:.7;transform:scale(1)}100%{opacity:0;transform:scale(3.2)}}'
-        '@media (prefers-reduced-motion:reduce){.ln,.ar,.pulse{animation:none}.pulse{opacity:0}}</style>',
-        f'<defs><linearGradient id="fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="{accent}" stop-opacity=".32"/>'
+        card_frame(CARD_W, CARD_H, t, f"ac-{theme}"),
+        title("Contribution Activity", t, "weekly · last 12 months"),
+        f'<defs><linearGradient id="fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="{accent}" stop-opacity=".35"/>'
         f'<stop offset="1" stop-color="{accent}" stop-opacity="0"/></linearGradient></defs>',
-        f'<text x="24" y="84" font-family="{SANS}" font-size="30" font-weight="700" fill="{t["text"]}">{fmt(c["total"])}'
-        f'<tspan font-size="13" font-weight="400" fill="{t["muted"]}" dx="8">contributions in the last year</tspan></text>',
     ]
     for fraction in (0.5, 1.0):
         y = y_base - (y_base - y_top) * fraction
         parts.append(f'<path d="M{left} {y:.1f}H{right}" stroke="{t["grid"]}" stroke-dasharray="3 4"/>'
-                     f'<text x="{right}" y="{y - 5:.1f}" text-anchor="end" font-family="{MONO}" font-size="9.5" fill="{t["faint"]}">{round(top * fraction)}</text>')
+                     f'<text x="{right}" y="{y - 4:.1f}" text-anchor="end" font-family="{MONO}" font-size="9" fill="{t["faint"]}">{math.ceil(top * fraction)}</text>')
     parts.append(f'<path d="M{left} {y_base}H{right}" stroke="{t["border"]}"/>')
-    parts.append(f'<path class="ar" d="{area}" fill="url(#fill)"/>')
-    parts.append(f'<path class="ln" pathLength="1" d="{line}" fill="none" stroke="{accent}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>')
-
-    seen_month = None
+    if counts:
+        parts.append(f'<path class="fade" d="{line}L{right:.1f} {y_base}L{left} {y_base}Z" fill="url(#fill)"/>')
+        parts.append(f'<path class="draw" pathLength="1" d="{line}" fill="none" stroke="{accent}" stroke-width="2" '
+                     f'stroke-linecap="round" stroke-linejoin="round"/>')
+    seen = None
     for i, week in enumerate(weeks):
         month = week["start"][:7]
-        if month != seen_month:
-            seen_month = month
+        if month != seen:
+            seen = month
             if 1 <= i <= len(weeks) - 3:
-                label = datetime.strptime(month, "%Y-%m").strftime("%b")
-                parts.append(f'<text x="{left + i * step:.1f}" y="252" text-anchor="middle" font-family="{MONO}" '
-                             f'font-size="9.5" fill="{t["faint"]}">{label}</text>')
+                parts.append(f'<text x="{left + i * step:.1f}" y="168" text-anchor="middle" font-family="{MONO}" font-size="9" '
+                             f'fill="{t["faint"]}">{datetime.strptime(month, "%Y-%m"):%b}</text>')
     if counts:
-        peak_index = counts.index(peak)
-        px, py = points[peak_index]
+        index = counts.index(peak)
+        px, py = points[index]
         lx, ly = points[-1]
-        peak_day = date.fromisoformat(weeks[peak_index]["start"])
-        peak_week = f"{peak_day:%b} {peak_day.day}"
         parts.append(
             f'<circle cx="{px:.1f}" cy="{py:.1f}" r="3.5" fill="{t["bg_top"]}" stroke="{accent}" stroke-width="2"/>'
-            f'<circle class="pulse" cx="{lx:.1f}" cy="{ly:.1f}" r="4" fill="{accent}"/>'
-            f'<circle cx="{lx:.1f}" cy="{ly:.1f}" r="4" fill="{accent}"/>'
-            f'<text x="24" y="280" font-family="{MONO}" font-size="10.5" fill="{t["muted"]}">peak {peak} · week of {peak_week}</text>'
-            f'<text x="{right}" y="280" text-anchor="end" font-family="{MONO}" font-size="10.5" fill="{t["muted"]}">this week {counts[-1]}</text>'
+            f'<circle class="pulse" cx="{lx:.1f}" cy="{ly:.1f}" r="3.5" fill="{accent}"/>'
+            f'<circle cx="{lx:.1f}" cy="{ly:.1f}" r="3.5" fill="{accent}"/>'
+            f'<text x="24" y="188" font-family="{MONO}" font-size="10" fill="{t["muted"]}">peak {peak} · week of {short_date(weeks[index]["start"])}</text>'
+            f'<text x="{right}" y="188" text-anchor="end" font-family="{MONO}" font-size="10" fill="{t["muted"]}">this week {counts[-1]}</text>'
         )
-    desc = (f"Weekly contributions from {c['first_day']} to {c['last_day']}: {fmt(c['total'])} in total, "
-            f"peaking at {peak} in one week. Updated {stats['updated']} UTC.")
-    return document(CARD_W, CARD_H, "Contributions in the last year", desc, "".join(parts))
+    desc = (f"Weekly contributions from {stats['contributions']['first_day']} to {stats['contributions']['last_day']}, "
+            f"peaking at {peak} in one week.")
+    return document(CARD_W, CARD_H, "Contribution activity", desc, "".join(parts), STYLE)
 
 
 def render_all(stats):
     assets = {}
     for theme in THEMES:
-        assets[f"overview-{theme}.svg"] = render_overview(stats, theme)
+        assets[f"stats-{theme}.svg"] = render_stats(stats, theme)
+        assets[f"languages-{theme}.svg"] = render_languages(stats, theme)
+        assets[f"streak-{theme}.svg"] = render_streak(stats, theme)
         assets[f"activity-{theme}.svg"] = render_activity(stats, theme)
+    assets["badge-followers.svg"] = badge("followers", fmt(stats["followers"]), "users", "#7c3aed")
+    assets["badge-stars.svg"] = badge("stars", fmt(stats["stars"]), "star", "#b45309")
     assets["github-stats.json"] = json.dumps(stats, indent=2, ensure_ascii=False) + "\n"
     return assets
 
 
-def update(output):
-    today = datetime.now(timezone.utc).date().isoformat()
-    stats = summarize(fetch_repositories(), fetch_calendar(), today)
-    write_assets(output, render_all(stats))  # publication is one workflow commit
-    print(f"Generated profile statistics for {USER} ({today} UTC)")
+def publish(output, assets):
+    write_assets(output, assets)  # all-or-nothing replacement
+    for old in output.glob("*.svg"):
+        if old.name not in assets:
+            old.unlink()  # retire files from earlier layouts
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output-dir", type=Path, default=ROOT / "assets" / "stats")
     parser.add_argument("--render-only", action="store_true",
-                        help="re-render SVGs from the committed JSON snapshot without network access")
+                        help="re-render the SVGs from the committed JSON snapshot, without network access")
     args = parser.parse_args()
     try:
         if args.render_only:
             stats = json.loads((args.output_dir / "github-stats.json").read_text(encoding="utf-8"))
-            write_assets(args.output_dir, render_all(stats))
-            print("Re-rendered statistics SVGs from the existing snapshot")
         else:
-            update(args.output_dir)
+            stats = summarize(fetch(), datetime.now(timezone.utc).date().isoformat())
+        publish(args.output_dir, render_all(stats))
     except Exception as error:
         # Never print response bodies, headers or tokens.
-        raise SystemExit(f"Statistics update failed ({type(error).__name__}); no update should be published.") from None
+        raise SystemExit(f"Statistics update failed ({type(error).__name__}); previous files were kept.") from None
+    print(f"Statistics for {USER} rendered ({stats['updated']} UTC)")
 
 
 if __name__ == "__main__":

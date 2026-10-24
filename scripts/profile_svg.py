@@ -34,14 +34,7 @@ THEMES = {
 
 # 24x24 stroke glyphs drawn for this profile (not brand marks).
 GLYPHS = {
-    "code": "M8.5 7 3.5 12l5 5M15.5 7l5 5-5 5M13.5 4.5l-3 15",
-    "sparkle": "M12 3c.7 4.6 3.4 7.3 8 8-4.6.7-7.3 3.4-8 8-.7-4.6-3.4-7.3-8-8 4.6-.7 7.3-3.4 8-8Z",
     "tree": "M12 6.5v3M12 9.5 6.5 14.5M12 9.5l5.5 5M6.5 14.5v2.5M17.5 14.5v2.5M12 3.5a2 2 0 1 1 0 4 2 2 0 0 1 0-4ZM6.5 17a2 2 0 1 1 0 4 2 2 0 0 1 0-4ZM17.5 17a2 2 0 1 1 0 4 2 2 0 0 1 0-4Z",
-    "terminal": "M5 4.5h14a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-11a2 2 0 0 1 2-2ZM7 9.5l3 2.5-3 2.5M12.5 15H17",
-    "calendar": "M5 5h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2ZM3 10h18M8 3v4M16 3v4M7 14h3M14 14h3M7 17.5h3",
-    "shield": "M12 3 4.5 6v5.5c0 4.6 3.1 8.2 7.5 9.5 4.4-1.3 7.5-4.9 7.5-9.5V6L12 3ZM12 10.5v3.5M12 8.5a2 2 0 1 1 0 4 2 2 0 0 1 0-4Z",
-    "gauge": "M4 17a8 8 0 1 1 16 0M12 17l4-5M7 13.5l1 .6M12 9v1.2M17 13.5l-1 .6",
-    "wifi": "M2.5 9a14 14 0 0 1 19 0M5.5 12.5a9.5 9.5 0 0 1 13 0M8.5 16a5 5 0 0 1 7 0M12 19.5h.01",
     "laptop": "M5 5.5h14v10H5zM2.5 18.5h19",
     "desktop": "M3.5 4.5h17v11h-17zM9 20h6M12 15.5V20",
     "router": "M4 13h16a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-4a1 1 0 0 1 1-1ZM7 13 5.5 5.5M17 13l1.5-7.5M7 16h.01M10 16h.01",
@@ -49,7 +42,13 @@ GLYPHS = {
     "database": "M12 3c4.4 0 8 1.3 8 3s-3.6 3-8 3-8-1.3-8-3 3.6-3 8-3ZM4 6v12c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3",
     "globe": "M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18ZM3 12h18M12 3c2.5 2.6 3.7 5.6 3.7 9s-1.2 6.4-3.7 9c-2.5-2.6-3.7-5.6-3.7-9S9.5 5.6 12 3Z",
     "mail": "M4 5.5h16a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-11a1 1 0 0 1 1-1ZM3.5 6.5 12 13l8.5-6.5",
-    "merge": "M6 3.5a2 2 0 1 1 0 4 2 2 0 0 1 0-4ZM6 16.5a2 2 0 1 1 0 4 2 2 0 0 1 0-4ZM18 16.5a2 2 0 1 1 0 4 2 2 0 0 1 0-4ZM6 7.5v9M6 7.5c0 4.5 4 5.5 12 9",
+    "star": "M12 3.5l2.6 5.3 5.8.8-4.2 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.2-4.1 5.8-.8L12 3.5Z",
+    "commit": "M12 8.5a3.5 3.5 0 1 1 0 7 3.5 3.5 0 0 1 0-7ZM2.5 12h6M15.5 12h6",
+    "pull": "M6 3.5a2 2 0 1 1 0 4 2 2 0 0 1 0-4ZM6 16.5a2 2 0 1 1 0 4 2 2 0 0 1 0-4ZM18 16.5a2 2 0 1 1 0 4 2 2 0 0 1 0-4ZM6 7.5v9M18 16.5V9a3 3 0 0 0-3-3h-4M13 3.5 10.5 6 13 8.5",
+    "issue": "M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18ZM12 11a1 1 0 1 1 0 2 1 1 0 0 1 0-2Z",
+    "repo": "M6.5 3H19v15H6.5A2.5 2.5 0 0 0 4 20.5v-15A2.5 2.5 0 0 1 6.5 3ZM4 20.5A2.5 2.5 0 0 0 6.5 23H19v-5M9 7h6",
+    "users": "M9 4a3.5 3.5 0 1 1 0 7 3.5 3.5 0 0 1 0-7ZM2.5 20c.6-3.6 3.2-6 6.5-6s5.9 2.4 6.5 6M16 4.3a3.5 3.5 0 0 1 0 6.4M18 14.4c1.9.9 3.2 2.9 3.5 5.6",
+    "flame": "M12 2.5c.5 3.2 4.5 5.4 4.5 10.2A4.5 4.5 0 0 1 12 21.5a4.5 4.5 0 0 1-4.5-4.6c0-2.3 1.2-3.6 2.3-4.9.3 1.6 1 2.5 2 2.8C11 11 10.7 6.4 12 2.5Z",
 }
 
 
@@ -86,18 +85,6 @@ def card_frame(width, height, t, uid, radius=16):
         f'</linearGradient></defs>'
         f'<rect x="0.5" y="0.5" width="{width - 1}" height="{height - 1}" rx="{radius}" '
         f'fill="url(#{uid}-bg)" stroke="{t["border"]}"/>'
-    )
-
-
-def chip(x, y, text, color, t, size=10.5, anchor="start", fill_opacity=None):
-    """Monospace pill; returns (svg, width). y is the vertical centre."""
-    width = mono_width(text, size) + 16
-    left = x - width if anchor == "end" else x
-    return (
-        f'<rect x="{left:.1f}" y="{y - 10:.1f}" width="{width:.1f}" height="20" rx="10" fill="{color}" '
-        f'fill-opacity="{t["tile"] if fill_opacity is None else fill_opacity}"/>'
-        f'<text x="{left + 8:.1f}" y="{y + 3.6:.1f}" font-family="{MONO}" font-size="{size}" fill="{color}">{esc(text)}</text>',
-        width,
     )
 
 
@@ -139,3 +126,19 @@ def write_assets(output, assets, check=False):
         for name in assets:
             os.replace(Path(staging, name), output / name)
     return []
+
+
+def badge(label, value, glyph_name, colour):
+    """Shields-style two-part badge that reads well on both light and dark pages."""
+    left = 30 + mono_width(label, 11) + 10
+    right = mono_width(value, 11) + 20
+    width = round(left + right)
+    body = (
+        f'<clipPath id="r"><rect width="{width}" height="28" rx="7"/></clipPath><g clip-path="url(#r)">'
+        f'<rect width="{left:.1f}" height="28" fill="#24292f"/>'
+        f'<rect x="{left:.1f}" width="{right + 1:.1f}" height="28" fill="{colour}"/></g>'
+        + glyph(glyph_name, 10, 7, 14, "#ffffff", width=2)
+        + f'<text x="30" y="18" font-family="{MONO}" font-size="11" fill="#d0d7de">{esc(label)}</text>'
+        + f'<text x="{left + 10:.1f}" y="18" font-family="{MONO}" font-size="11" font-weight="600" fill="#ffffff">{esc(value)}</text>'
+    )
+    return document(width, 28, f"{label}: {value}", f"{label}: {value}", body)

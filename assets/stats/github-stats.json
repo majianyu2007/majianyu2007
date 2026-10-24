@@ -1,66 +1,176 @@
 {
   "user": "majianyu2007",
-  "updated": "2026-10-23",
+  "updated": "2026-10-24",
+  "followers": 12,
+  "pull_requests": 31,
+  "issues": 37,
   "repositories": 25,
   "stars": 16,
+  "language_repositories": 22,
   "languages": [
-    [
-      "Python",
-      5
-    ],
-    [
-      "HTML",
-      3
-    ],
-    [
-      "C",
-      2
-    ],
-    [
-      "Dart",
-      2
-    ],
-    [
-      "JavaScript",
-      2
-    ],
-    [
-      "Rust",
-      2
-    ],
-    [
-      "C++",
-      1
-    ],
-    [
-      "Go",
-      1
-    ],
-    [
-      "Java",
-      1
-    ],
-    [
-      "Swift",
-      1
-    ],
-    [
-      "TeX",
-      1
-    ],
-    [
-      "TypeScript",
-      1
-    ]
+    {
+      "name": "Python",
+      "color": "#3572A5",
+      "share": 23.49
+    },
+    {
+      "name": "HTML",
+      "color": "#e34c26",
+      "share": 12.77
+    },
+    {
+      "name": "JavaScript",
+      "color": "#f1e05a",
+      "share": 9.62
+    },
+    {
+      "name": "C",
+      "color": "#555555",
+      "share": 8.59
+    },
+    {
+      "name": "Rust",
+      "color": "#dea584",
+      "share": 7.36
+    },
+    {
+      "name": "Dart",
+      "color": "#00B4AB",
+      "share": 7.15
+    },
+    {
+      "name": "C++",
+      "color": "#f34b7d",
+      "share": 6.66
+    },
+    {
+      "name": "TypeScript",
+      "color": "#3178c6",
+      "share": 4.86
+    },
+    {
+      "name": "Java",
+      "color": "#b07219",
+      "share": 4.55
+    },
+    {
+      "name": "Go",
+      "color": "#00ADD8",
+      "share": 4.52
+    },
+    {
+      "name": "Swift",
+      "color": "#F05138",
+      "share": 4.34
+    },
+    {
+      "name": "TeX",
+      "color": "#3D6117",
+      "share": 4.3
+    },
+    {
+      "name": "CSS",
+      "color": "#663399",
+      "share": 0.8
+    },
+    {
+      "name": "Shell",
+      "color": "#89e051",
+      "share": 0.59
+    },
+    {
+      "name": "Astro",
+      "color": "#ff5a03",
+      "share": 0.36
+    },
+    {
+      "name": "Ruby",
+      "color": "#701516",
+      "share": 0.02
+    },
+    {
+      "name": "Kotlin",
+      "color": "#A97BFF",
+      "share": 0.01
+    },
+    {
+      "name": "Vim Script",
+      "color": "#199f4b",
+      "share": 0.01
+    },
+    {
+      "name": "Objective-C",
+      "color": "#438eff",
+      "share": 0.0
+    },
+    {
+      "name": "Linker Script",
+      "color": "#8c959f",
+      "share": 0.0
+    },
+    {
+      "name": "Emacs Lisp",
+      "color": "#c065db",
+      "share": 0.0
+    },
+    {
+      "name": "Tcl",
+      "color": "#e4cc98",
+      "share": 0.0
+    },
+    {
+      "name": "Fortran",
+      "color": "#4d41b1",
+      "share": 0.0
+    },
+    {
+      "name": "Pascal",
+      "color": "#E3F171",
+      "share": 0.0
+    },
+    {
+      "name": "M4",
+      "color": "#8c959f",
+      "share": 0.0
+    },
+    {
+      "name": "HIP",
+      "color": "#4F3A4F",
+      "share": 0.0
+    },
+    {
+      "name": "Cuda",
+      "color": "#3A4E3A",
+      "share": 0.0
+    },
+    {
+      "name": "Objective-C++",
+      "color": "#6866fb",
+      "share": 0.0
+    },
+    {
+      "name": "ISPC",
+      "color": "#2D68B1",
+      "share": 0.0
+    }
   ],
-  "followers": 12,
   "contributions": {
-    "total": 1533,
+    "total": 1534,
+    "commits": 847,
+    "contributed_to": 24,
     "active_days": 198,
-    "current_streak": 2,
-    "longest_streak": 17,
     "first_day": "2025-10-19",
-    "last_day": "2026-10-23",
+    "last_day": "2026-10-24",
+    "current_streak": {
+      "length": 2,
+      "start": "2026-10-22",
+      "end": "2026-10-23"
+    },
+    "longest_streak": {
+      "length": 17,
+      "start": "2026-06-06",
+      "end": "2026-06-22"
+    },
     "weeks": [
       {
         "start": "2025-10-19",
@@ -272,7 +382,7 @@
       },
       {
         "start": "2026-10-18",
-        "count": 3
+        "count": 4
       }
     ]
   }
