@@ -177,8 +177,10 @@ def summarize_calendar(collection):
         days.extend((date.fromisoformat(entry["date"]), count) for entry, count in zip(entries, counts))
         weekly.append({"start": entries[0]["date"], "count": sum(counts)})
     dates = [day for day, _ in days]
-    if any(b - a != timedelta(days=1) for a, b in zip(dates, dates[1:])) or sum(c for _, c in days) != total:
-        raise ValueError("calendar days are not contiguous or do not add up")
+    # The headline total need not equal the sum of the days: GitHub's "last year" window and the
+    # calendar's day boundaries differ slightly, so only the day sequence itself is checked.
+    if any(b - a != timedelta(days=1) for a, b in zip(dates, dates[1:])):
+        raise ValueError("calendar days are not contiguous")
 
     runs = list(_runs(days))
     longest = max(runs, key=lambda run: (run[2], run[1]), default=None)

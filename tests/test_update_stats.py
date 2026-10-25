@@ -74,10 +74,14 @@ class SummaryTests(unittest.TestCase):
         # Two idle days end it.
         self.assertEqual(stats.summarize_calendar(calendar({2: 1}))["current_streak"]["length"], 0)
         self.assertEqual(stats.summarize_calendar(calendar())["longest_streak"]["length"], 0)
+        # GitHub's headline total may differ a little from the sum of the days; report it as given.
+        shifted = calendar({0: 1})
+        shifted["contributionCalendar"]["totalContributions"] = 12
+        self.assertEqual(stats.summarize_calendar(shifted)["total"], 12)
 
     def test_rejects_inconsistent_or_unexpected_data(self):
         broken_calendar = calendar({0: 1})
-        broken_calendar["contributionCalendar"]["totalContributions"] = 7
+        broken_calendar["contributionCalendar"]["weeks"][-1]["contributionDays"][-1]["contributionCount"] = -1
         gap = calendar()
         del gap["contributionCalendar"]["weeks"][5]["contributionDays"][3]
         cases = [
