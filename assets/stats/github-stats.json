@@ -1,6 +1,6 @@
 {
   "user": "majianyu2007",
-  "updated": "2026-10-27",
+  "updated": "2026-10-28",
   "followers": 13,
   "pull_requests": 30,
   "issues": 37,
@@ -160,11 +160,11 @@
     "contributed_to": 25,
     "active_days": 199,
     "first_day": "2025-10-26",
-    "last_day": "2026-10-27",
+    "last_day": "2026-10-28",
     "current_streak": {
-      "length": 5,
-      "start": "2026-10-22",
-      "end": "2026-10-26"
+      "length": 0,
+      "start": null,
+      "end": null
     },
     "longest_streak": {
       "length": 17,
