@@ -1,11 +1,11 @@
 {
   "user": "majianyu2007",
-  "updated": "2026-11-01",
+  "updated": "2026-11-02",
   "followers": 13,
   "pull_requests": 30,
   "issues": 37,
   "repositories": 26,
-  "stars": 16,
+  "stars": 17,
   "language_repositories": 23,
   "languages": [
     {
@@ -155,16 +155,16 @@
     }
   ],
   "contributions": {
-    "total": 1545,
-    "commits": 852,
+    "total": 1544,
+    "commits": 848,
     "contributed_to": 25,
-    "active_days": 199,
+    "active_days": 200,
     "first_day": "2025-11-02",
-    "last_day": "2026-11-01",
+    "last_day": "2026-11-02",
     "current_streak": {
-      "length": 0,
-      "start": null,
-      "end": null
+      "length": 1,
+      "start": "2026-11-02",
+      "end": "2026-11-02"
     },
     "longest_streak": {
       "length": 17,
@@ -382,7 +382,7 @@
       },
       {
         "start": "2026-11-01",
-        "count": 0
+        "count": 4
       }
     ]
   }
