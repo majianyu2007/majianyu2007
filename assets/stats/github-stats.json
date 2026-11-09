@@ -1,6 +1,6 @@
 {
   "user": "majianyu2007",
-  "updated": "2026-11-08",
+  "updated": "2026-11-09",
   "followers": 13,
   "pull_requests": 30,
   "issues": 37,
@@ -21,7 +21,7 @@
     {
       "name": "JavaScript",
       "color": "#f1e05a",
-      "share": 9.2
+      "share": 9.24
     },
     {
       "name": "C",
@@ -46,7 +46,7 @@
     {
       "name": "TypeScript",
       "color": "#3178c6",
-      "share": 4.65
+      "share": 4.63
     },
     {
       "name": "Java",
@@ -71,7 +71,7 @@
     {
       "name": "CSS",
       "color": "#663399",
-      "share": 0.77
+      "share": 0.76
     },
     {
       "name": "Shell",
@@ -81,7 +81,7 @@
     {
       "name": "Astro",
       "color": "#ff5a03",
-      "share": 0.34
+      "share": 0.32
     },
     {
       "name": "Ruby",
@@ -155,16 +155,16 @@
     }
   ],
   "contributions": {
-    "total": 1550,
-    "commits": 851,
+    "total": 1552,
+    "commits": 853,
     "contributed_to": 25,
-    "active_days": 201,
+    "active_days": 202,
     "first_day": "2025-11-09",
-    "last_day": "2026-11-08",
+    "last_day": "2026-11-09",
     "current_streak": {
-      "length": 1,
+      "length": 2,
       "start": "2026-11-08",
-      "end": "2026-11-08"
+      "end": "2026-11-09"
     },
     "longest_streak": {
       "length": 17,
@@ -382,7 +382,7 @@
       },
       {
         "start": "2026-11-08",
-        "count": 2
+        "count": 5
       }
     ]
   }
