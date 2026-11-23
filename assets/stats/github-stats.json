@@ -1,6 +1,6 @@
 {
   "user": "majianyu2007",
-  "updated": "2026-11-22",
+  "updated": "2026-11-23",
   "followers": 13,
   "pull_requests": 30,
   "issues": 37,
@@ -16,7 +16,7 @@
     {
       "name": "HTML",
       "color": "#e34c26",
-      "share": 12.2
+      "share": 12.21
     },
     {
       "name": "JavaScript",
@@ -155,16 +155,16 @@
     }
   ],
   "contributions": {
-    "total": 1595,
-    "commits": 893,
+    "total": 1587,
+    "commits": 880,
     "contributed_to": 25,
-    "active_days": 195,
+    "active_days": 196,
     "first_day": "2025-11-23",
-    "last_day": "2026-11-22",
+    "last_day": "2026-11-23",
     "current_streak": {
-      "length": 0,
-      "start": null,
-      "end": null
+      "length": 1,
+      "start": "2026-11-23",
+      "end": "2026-11-23"
     },
     "longest_streak": {
       "length": 17,
@@ -382,7 +382,7 @@
       },
       {
         "start": "2026-11-22",
-        "count": 0
+        "count": 10
       }
     ]
   }
