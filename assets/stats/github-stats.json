@@ -1,17 +1,17 @@
 {
   "user": "majianyu2007",
-  "updated": "2026-11-23",
+  "updated": "2026-11-24",
   "followers": 13,
   "pull_requests": 30,
   "issues": 37,
-  "repositories": 26,
+  "repositories": 27,
   "stars": 17,
-  "language_repositories": 23,
+  "language_repositories": 24,
   "languages": [
     {
       "name": "Python",
       "color": "#3572A5",
-      "share": 26.79
+      "share": 25.67
     },
     {
       "name": "HTML",
@@ -21,67 +21,67 @@
     {
       "name": "JavaScript",
       "color": "#f1e05a",
-      "share": 9.28
+      "share": 11.73
     },
     {
       "name": "C",
       "color": "#555555",
-      "share": 8.21
+      "share": 7.87
     },
     {
       "name": "Rust",
       "color": "#dea584",
-      "share": 7.04
+      "share": 6.75
     },
     {
       "name": "Dart",
       "color": "#00B4AB",
-      "share": 6.8
+      "share": 6.52
     },
     {
       "name": "C++",
       "color": "#f34b7d",
-      "share": 6.34
+      "share": 6.07
     },
     {
       "name": "TypeScript",
       "color": "#3178c6",
-      "share": 4.63
+      "share": 4.44
     },
     {
       "name": "Java",
       "color": "#b07219",
-      "share": 4.35
+      "share": 4.17
     },
     {
       "name": "Go",
       "color": "#00ADD8",
-      "share": 4.33
+      "share": 4.15
     },
     {
       "name": "Swift",
       "color": "#F05138",
-      "share": 4.21
+      "share": 4.03
     },
     {
       "name": "TeX",
       "color": "#3D6117",
-      "share": 4.12
+      "share": 3.94
     },
     {
       "name": "CSS",
       "color": "#663399",
-      "share": 0.76
+      "share": 1.55
     },
     {
       "name": "Shell",
       "color": "#89e051",
-      "share": 0.56
+      "share": 0.54
     },
     {
       "name": "Astro",
       "color": "#ff5a03",
-      "share": 0.32
+      "share": 0.31
     },
     {
       "name": "Kotlin",
@@ -155,16 +155,16 @@
     }
   ],
   "contributions": {
-    "total": 1587,
-    "commits": 880,
-    "contributed_to": 25,
-    "active_days": 196,
+    "total": 1594,
+    "commits": 886,
+    "contributed_to": 26,
+    "active_days": 197,
     "first_day": "2025-11-23",
-    "last_day": "2026-11-23",
+    "last_day": "2026-11-24",
     "current_streak": {
-      "length": 1,
+      "length": 2,
       "start": "2026-11-23",
-      "end": "2026-11-23"
+      "end": "2026-11-24"
     },
     "longest_streak": {
       "length": 17,
@@ -382,7 +382,7 @@
       },
       {
         "start": "2026-11-22",
-        "count": 10
+        "count": 17
       }
     ]
   }
